@@ -1,0 +1,6 @@
+*.pyc
+.venv/*
+.vscode/*
+Pipfile
+Pipfile.lock
+python_reservoir.egg-info/*

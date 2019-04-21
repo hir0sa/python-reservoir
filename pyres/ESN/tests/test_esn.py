@@ -62,28 +62,6 @@ def test_transform():
     esn.with_time = False
     assert esn.transform(X).shape == (N_sample, N_nodes+1)
 
-def test_transform():
-    N_in = 3
-    T = 100
-    N_nodes = 50
-    N_sample=2
-    washout_t = 10
-
-    X = np.random.rand(N_sample, T, N_in)
-    esn = ESN(N_nodes=N_nodes, N_in=N_in, washout_t=washout_t, with_input=True, with_time=True)
-
-    assert esn.transform(X).shape == (N_sample*(T-washout_t), N_nodes+N_in+1)
-    esn.with_input = True
-    esn.with_time = False
-    assert esn.transform(X).shape == (N_sample, N_nodes+N_in+1)
-    esn.with_input = False
-    esn.with_time = True
-    assert esn.transform(X).shape == (N_sample*(T-washout_t), N_nodes+1)
-    esn.with_time = False
-    esn.with_time = False
-    assert esn.transform(X).shape == (N_sample, N_nodes+1)
-    
-
 def test_fit_esnr(): 
     
     N_nodes=100

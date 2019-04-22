@@ -62,7 +62,7 @@ def test_transform():
     esn.with_time = False
     assert esn.transform(X).shape == (N_sample, N_nodes+1)
 
-def test_fit_esnr(): 
+def test_performace_esnr(): 
     
     N_nodes=100
     N_in = 1
@@ -75,22 +75,5 @@ def test_fit_esnr():
     esnr.washout_t=0
     out = esnr.predict(x_test)
     nrmse = np.sqrt(mean_squared_error(out, y_test))/np.std(y_test)
-    print(nrmse)
+
     assert nrmse < 0.01
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-

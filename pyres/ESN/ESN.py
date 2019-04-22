@@ -18,18 +18,8 @@ class ESN(BaseEstimator, TransformerMixin):
 
         #set reservoir weight
         if W_res is None:
-            
-            n_try = 10
-            for i in range(n_try):
-                W = sparse.random(self.N_nodes, self.N_nodes, density=0.1, data_rvs=stats.uniform(loc=-0.5, scale=1.0).rvs, random_state=42)
-                rhoW = max(abs(linalg.eig(W.todense())[0]))
-                if rhoW != 0:
-                    break
-            if rhoW == 0:
-                raise ValueError("tried to make random matrix {} times, but all eigenvalues of them are zero".format(n_try))
-
-            self.W_res =  W.tocsr()/ rhoW
-    
+            self.W_res = self._generate_random_sparse_matrix(N_nodes, N_nodes)
+                
         else:            
             self.W_res = W_res
 
@@ -41,9 +31,9 @@ class ESN(BaseEstimator, TransformerMixin):
         if W_in is None :
             np.random.seed(seed=32)
             if(input_bias):
-                self.W_in = (np.random.rand(self.N_nodes, 1 + self.N_in)-0.5)
+                self.W_in = self._generate_random_dense_matrix(N_nodes, 1+N_in)
             else:
-                self.W_in = (np.random.rand(self.N_nodes, self.N_in)-0.5)
+                self.W_in = self._generate_random_dense_matrix(N_nodes, N_in)
         else:
             self.W_in = W_in
 
@@ -55,6 +45,23 @@ class ESN(BaseEstimator, TransformerMixin):
 
         #set leaking rate
         self.alpha = alpha
+
+    def _generate_random_sparse_matrix(self, x_dim, y_dim):
+        n_try = 10
+        for i in range(n_try):
+            W = sparse.random(x_dim, y_dim, density=0.1, data_rvs=stats.uniform(loc=-0.5, scale=1.0).rvs, random_state=42)
+            rhoW = max(abs(linalg.eig(W.todense())[0]))
+            if rhoW != 0:
+                break
+        else :
+            raise ValueError("tried to make random matrix {} times, but all eigenvalues of them are zero".format(n_try))
+    
+        return  W.tocsr()/ rhoW
+
+    def _generate_random_dense_matrix(self, x_dim, y_dim):
+        np.random.seed(seed=32)
+        return np.random.rand(x_dim, y_dim) - 0.5
+
 
     @property
     def W_res(self):

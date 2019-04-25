@@ -206,7 +206,7 @@ class ESNR(ESN):
 
 
 class ESNC(ESN):
-    def __init__(self, N_nodes, N_in, g_in = 0.1, alpha = 0.3, initial_state = None, W_res = None, W_in= None, g_res = 1.0, input_bias = True,  washout_t = None,  with_time = True, with_input = True, **cl_pram):
+    def __init__(self, N_nodes, N_in, g_in = 0.1, alpha = 0.3, initial_state = None, W_res = None, W_in= None, g_res = 1.0, input_bias = True,  washout_t = None,  with_time = False, with_input = True, **cl_pram):
         super().__init__(N_nodes, N_in, g_in, alpha, initial_state, W_res, W_in, g_res, input_bias, washout_t, with_time, with_input)
         if clf is None:
             self.clf = linear_model.svm.LinearSVC()

@@ -7,7 +7,54 @@ from ..utils import check_dim
 import multiprocessing as mp
 import sys
 
-class ESN(BaseEstimator, TransformerMixin):
+class ESNbase(BaseEstimator, TransformerMixin):
+    """Base class for echo state network as scikit-learn compatible model.
+
+    Parameters
+    ----------
+    N_nodes : int
+        Number of internal nodes.
+
+    N_in : int
+        Dimension of a input.
+
+    g_in : float
+        Strength of input weights
+    
+    alpha : float
+        leaking rate of dynamics
+
+    initial_state : array, optional
+        Initial state of echo state network.
+        If not provided, zero vector is given.
+
+    W_res : array or sparse matrix, shape (N_nodes, N_nodes), optional
+        Weights of internal network.
+        If not provided, random sparse matrix (10% edge density) is given.
+
+    W_in : array, (N_nodes, N_in),  optional
+        Weights of input to internal network.
+        If not provided, random matrix is given.
+
+    g_in : float
+        Strength of weights of internal network.
+
+    input_bias : bool
+        If true, extra bias dimension is added to input.
+
+    washout_t : int
+        Duration to discard initial time steps
+
+    with_time : bool
+        If true, the model output all timeseries
+
+    with_input : bool
+        If true, the model output with input  
+        
+
+    """
+
+
     def __init__(self, N_nodes=100, N_in=1, g_in = 0.1, alpha = 0.3, initial_state = None, W_res = None, W_in= None, g_res = 1.0, input_bias=True, washout_t = 0, with_time = True, with_input = True):
         self.N_nodes = N_nodes
         self.N_in = N_in
@@ -95,6 +142,15 @@ class ESN(BaseEstimator, TransformerMixin):
             self.x = (1-self.alpha)*self.x + self.alpha*np.tanh( self.g_in*np.dot( self._W_in,u) + self.g_res * np.dot( self._W_res, self.x ))
 
     def feed(self, In):
+        """Run ESN dynamics with input time series to ESN 
+
+        Parameters
+        ----------
+
+        In : array, shape = [n_timesteps, n_features]
+            Input timeseries.
+
+        """
         if(isinstance(self._W_res, sparse.csr_matrix)):
             for u in In:
                 self.iterate_csr(u)
@@ -103,23 +159,52 @@ class ESN(BaseEstimator, TransformerMixin):
                 self.iterate(u)
 
     def feed_time(self, In):
+        """Run ESN dynamics with input time series to ESN and output internal states timeseries
+
+        Parameters
+        ----------
+
+        In : array, shape = [n_timesteps, n_features]
+            Input timeseries.
+
+        Returns
+        ----------
+        States : array, shape = [n_timesteps - washout_t, N_nodes + 1]
+            return timeseries of internal ESN states.
+
+        """
+
         check_dim(In, 2)
         T, n_features = np.shape(In)
-        X = np.zeros([T - self.washout_t, self.N_nodes + 1])
+        States = np.zeros([T - self.washout_t, self.N_nodes + 1])
         if(isinstance(self._W_res, sparse.csr_matrix)):
             for t in range(T):
                 self.iterate_csr(In[t])
                 if t > self.washout_t:
-                    X[t - self.washout_t] = np.hstack([self.x, 1])
+                    States[t - self.washout_t] = np.hstack([self.x, 1])
         else:
             for t in range(T):
                 self.iterate(In[t])
                 if t > self.washout_t:
-                    X[t - self.washout_t] = np.hstack([self.x, 1])
+                    States[t - self.washout_t] = np.hstack([self.x, 1])
 
-        return X
+        return States
 
     def feed_time_with_input(self, In):
+        """Run ESN dynamics with input time series and output and output internal states and input timeseries.
+
+        Parameters
+        ----------
+
+        In : array, shape = [n_timesteps, n_features]
+            Input timeseries.
+
+        Returns
+        ----------
+        States : array, shape = [n_timesteps - washout_t, N_nodes + n_features + 1]
+            return timeseries of internal ESN states and input.
+
+        """
         check_dim(In, 2)
         T, n_features = np.shape(In)
         X = np.zeros([T - self.washout_t, self.N_nodes + n_features + 1 ])
@@ -140,6 +225,22 @@ class ESN(BaseEstimator, TransformerMixin):
         pass
     
     def transform(self, X, initiate=False):
+        """Feed input time series data to ESN
+
+        Parameters
+        ----------
+
+        X : array, shape = [n_samples, n_timesteps, n_features]
+            Input timeseries data.
+
+        initiate : bool
+            If true, initiate internal states everytime
+
+        Returns
+        ----------
+        self : returns an instance of self.
+        """
+
         check_dim(X, 3)
         n_samples, T, n_features = np.shape(X)
 
@@ -187,7 +288,20 @@ class ESN(BaseEstimator, TransformerMixin):
     def initiate(self):
         self.x = np.zeros(self.N_nodes)
 
-class ESNR(ESN):
+class ESNR(ESNbase):
+    """Echo state network with regressor 
+
+    Parameters
+    ----------
+
+    clf : object
+        regressor as scikit-learn compatible model
+
+    cl_param : dict
+        Parameters for clf
+
+    """
+
     def __init__(self, N_nodes, N_in, g_in = 0.1, alpha = 0.3, initial_state = None, W_res = None, W_in= None, g_res = 1.0, input_bias = True,  washout_t = None, with_input = True, clf=None, **cl_pram):
         super().__init__(N_nodes, N_in, g_in, alpha, initial_state, W_res, W_in, g_res, input_bias, washout_t, with_time=True, with_input=with_input)
         if clf is None:
@@ -195,17 +309,58 @@ class ESNR(ESN):
         else:
             self.clf = clf(**cl_pram)
 
-    def fit(self, X, y):        
+    def fit(self, X, y):
+        """Fit regression model
+
+        Parameters
+        ----------
+
+        X : array, shape = [n_samples, n_timesteps, n_features]
+            Input timeseries data.
+
+        y : array, shape = [n_samples * n_timesteps, ]
+            Target values
+
+        Returns
+        ----------
+        self : returns an instance of self.
+        """
+
         Out = self.transform(X)
         self.clf.fit(Out, y)        
         return self
 
     def predict(self, X):
+        """Predict using the fitted model
+        
+        X : array, shape = [n_samples, n_timesteps, n_features]
+            Input timeseries data.
+        
+        Returns:
+        ----------
+        Out : array [n_sample * n_timesteps, ]
+            predicted values.            
+
+        """
+
         Out = self.transform(X)
         return self.clf.predict(Out)
 
 
-class ESNC(ESN):
+class ESNC(ESNbase):
+    """Echo state network with classifier 
+
+    Parameters
+    ----------
+
+    clf : object
+        regressor as scikit-learn compatible model
+
+    cl_param : dict
+        Parameters for clf
+
+    """
+
     def __init__(self, N_nodes, N_in, g_in = 0.1, alpha = 0.3, initial_state = None, W_res = None, W_in= None, g_res = 1.0, input_bias = True,  washout_t = None,  with_time = False, with_input = True, **cl_pram):
         super().__init__(N_nodes, N_in, g_in, alpha, initial_state, W_res, W_in, g_res, input_bias, washout_t, with_time, with_input)
         if clf is None:
@@ -213,11 +368,38 @@ class ESNC(ESN):
         else:
             self.clf = clf(**cl_pram)
 
-    def fit(self, X, y):        
+    def fit(self, X, y):
+        """Fit classifier model
+
+        Parameters
+        ----------
+
+        X : array, shape = [n_samples, n_timesteps, n_features]
+            Input timeseries data.
+
+        y : array, shape = [n_samples, ]
+            Target values
+
+        Returns
+        ----------
+        self : returns an instance of self.
+        """
+
         Out = self.transform(X)
         self.clf.fit(Out, y)  
         return self      
 
     def predict(self, X):
+        """Predict using the fitted model
+        
+        X : array, shape = [n_samples, n_timesteps, n_features]
+            Input timeseries data.
+        
+        Returns:
+        ----------
+        Out : array [n_sample, ]
+            predicted values.            
+                        
+        """
         Out = self.transform(X)
         return self.clf.predict(Out)

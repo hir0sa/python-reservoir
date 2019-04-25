@@ -10,3 +10,9 @@ To install python-reservoir,
 ```
 $ pip install git+https://github.com/hir0sa/python-reservoir
 ````
+
+## Tutorials
+
+- input-output time series prediction 
+
+    https://github.com/hir0sa/python-reservoir/blob/master/docs/timeseries_prediction_demo.ipynb

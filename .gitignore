@@ -2,3 +2,4 @@
 .venv/*
 .vscode/*
 python_reservoir.egg-info/*
+*checkpoint.ipynb

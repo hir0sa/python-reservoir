@@ -3,7 +3,7 @@ from sklearn.metrics import mean_squared_error
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from numpy.testing import assert_almost_equal
-from pyres.ESN import ESN, ESNR
+from pyres.ESN import ESNbase, ESNR
 from pyres.datasets import load_narma2
 
 def test_esn_parameters():
@@ -19,7 +19,7 @@ def test_esn_parameters():
         washout_t = 10
     )
 
-    esn = ESN(**param)
+    esn = ESNbase(**param)
 
     assert param['N_nodes'] == esn.N_nodes
     assert param['N_in'] == esn.N_in
@@ -35,7 +35,7 @@ def test_feed_time():
     N_nodes = 50
     washout_t = 10
     inp = np.random.rand(T, N_in)
-    esn = ESN(N_nodes=N_nodes, N_in=N_in, washout_t=washout_t)
+    esn = ESNbase(N_nodes=N_nodes, N_in=N_in, washout_t=washout_t)
 
     assert esn.feed_time(inp).shape == (T-washout_t, N_nodes+1)
     assert esn.feed_time_with_input(inp).shape == (T-washout_t, N_nodes+N_in+1)
@@ -49,7 +49,7 @@ def test_transform():
     washout_t = 10
 
     X = np.random.rand(N_sample, T, N_in)
-    esn = ESN(N_nodes=N_nodes, N_in=N_in, washout_t=washout_t, with_input=True, with_time=True)
+    esn = ESNbase(N_nodes=N_nodes, N_in=N_in, washout_t=washout_t, with_input=True, with_time=True)
 
     assert esn.transform(X).shape == (N_sample*(T-washout_t), N_nodes+N_in+1)
     esn.with_input = True
@@ -69,7 +69,7 @@ def test_performace_esnr():
     washout_t  = 100
     g_in = 10
     x_train, x_test, y_train, y_test = load_narma2()
-    y_train = y_train[washout_t:]
+    y_train = y_train[washout_t:, 0]
     esnr = ESNR(N_nodes, N_in, g_in=g_in, washout_t=washout_t)
     esnr.fit(x_train, y_train)
     esnr.washout_t=0

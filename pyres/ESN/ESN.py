@@ -302,12 +302,12 @@ class ESNR(ESNbase):
 
     """
 
-    def __init__(self, N_nodes, N_in, g_in = 0.1, alpha = 0.3, initial_state = None, W_res = None, W_in= None, g_res = 1.0, input_bias = True,  washout_t = None, with_input = True, clf=None, **cl_pram):
+    def __init__(self, N_nodes, N_in, g_in = 0.1, alpha = 0.3, initial_state = None, W_res = None, W_in= None, g_res = 1.0, input_bias = True,  washout_t = None, with_input = True, clf=None, cl_param={}):
         super().__init__(N_nodes, N_in, g_in, alpha, initial_state, W_res, W_in, g_res, input_bias, washout_t, with_time=True, with_input=with_input)
         if clf is None:
             self.clf = linear_model.Ridge(alpha=0.00001)
         else:
-            self.clf = clf(**cl_pram)
+            self.clf = clf(**cl_param)
 
     def fit(self, X, y):
         """Fit regression model
@@ -361,7 +361,7 @@ class ESNC(ESNbase):
 
     """
 
-    def __init__(self, N_nodes, N_in, g_in = 0.1, alpha = 0.3, initial_state = None, W_res = None, W_in= None, g_res = 1.0, input_bias = True,  washout_t = None,  with_time = False, with_input = True, **cl_pram):
+    def __init__(self, N_nodes, N_in, g_in = 0.1, alpha = 0.3, initial_state = None, W_res = None, W_in= None, g_res = 1.0, input_bias = True,  washout_t = None,  with_time = False, with_input = True, clf=None, cl_param={}):
         super().__init__(N_nodes, N_in, g_in, alpha, initial_state, W_res, W_in, g_res, input_bias, washout_t, with_time, with_input)
         if clf is None:
             self.clf = linear_model.svm.LinearSVC()

@@ -1,5 +1,6 @@
 from os.path import dirname, join
 from sklearn.metrics import mean_squared_error
+from sklearn.linear_model import Ridge
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from numpy.testing import assert_almost_equal
@@ -70,7 +71,21 @@ def test_performace_esnr():
     g_in = 10
     x_train, x_test, y_train, y_test = load_narma2()
     y_train = y_train[washout_t:, 0]
+
+    ## using default classifier 
     esnr = ESNR(N_nodes, N_in, g_in=g_in, washout_t=washout_t)
+    esnr.fit(x_train, y_train)
+    esnr.washout_t=0
+    out = esnr.predict(x_test)
+    nrmse = np.sqrt(mean_squared_error(out, y_test))/np.std(y_test)
+
+    assert nrmse < 0.01
+
+    ## using user defined classifier 
+    clf = Ridge
+    cl_param = {'alpha': 0.0001}
+    
+    esnr = ESNR(N_nodes, N_in, g_in=g_in, washout_t=washout_t, clf=clf, cl_param=cl_param)
     esnr.fit(x_train, y_train)
     esnr.washout_t=0
     out = esnr.predict(x_test)

@@ -16,3 +16,9 @@ $ pip install git+https://github.com/hir0sa/python-reservoir
 - input-output time series prediction 
 
     https://github.com/hir0sa/python-reservoir/blob/master/docs/timeseries_prediction_demo.ipynb
+
+## Import
+
+```
+import pyres
+```

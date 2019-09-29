@@ -82,10 +82,10 @@ def test_performace_esnr():
     assert nrmse < 0.01
 
     ## using user defined classifier 
-    clf = Ridge
-    cl_param = {'alpha': 0.0001}
+    alpha = 0.0001
+    reg = Ridge(alpha=alpha)
     
-    esnr = ESNR(N_nodes, N_in, g_in=g_in, washout_t=washout_t, clf=clf, cl_param=cl_param)
+    esnr = ESNR(N_nodes, N_in, g_in=g_in, washout_t=washout_t, reg=reg)
     esnr.fit(x_train, y_train)
     esnr.washout_t=0
     out = esnr.predict(x_test)

@@ -294,20 +294,22 @@ class ESNR(ESNbase):
     Parameters
     ----------
 
-    clf : object
+    reg : object
         regressor as scikit-learn compatible model
 
-    cl_param : dict
-        Parameters for clf
+    reg_param : dict
+        Parameters for reg
 
     """
 
-    def __init__(self, N_nodes, N_in, g_in = 0.1, alpha = 0.3, initial_state = None, W_res = None, W_in= None, g_res = 1.0, input_bias = True,  washout_t = None, with_input = True, clf=None, cl_param={}):
+    def __init__(self, N_nodes, N_in, g_in = 0.1, alpha = 0.3, initial_state = None, W_res = None, W_in= None, g_res = 1.0, input_bias = True,  washout_t = None, with_input = True, reg=None):
         super().__init__(N_nodes, N_in, g_in, alpha, initial_state, W_res, W_in, g_res, input_bias, washout_t, with_time=True, with_input=with_input)
-        if clf is None:
-            self.clf = linear_model.Ridge(alpha=0.00001)
+        
+        if reg is None:
+            self.reg = linear_model.Ridge(alpha = 0.00001)
         else:
-            self.clf = clf(**cl_param)
+
+            self.reg = reg
 
     def fit(self, X, y):
         """Fit regression model
@@ -315,7 +317,7 @@ class ESNR(ESNbase):
         Parameters
         ----------
 
-        X : array, shape = [n_samples, n_timesteps, n_features]
+        X : array, shape = [n_samples * n_timesteps, n_features]
             Input timeseries data.
 
         y : array, shape = [n_samples * n_timesteps, ]
@@ -327,13 +329,13 @@ class ESNR(ESNbase):
         """
 
         Out = self.transform(X)
-        self.clf.fit(Out, y)        
+        self.reg.fit(Out, y)
         return self
 
     def predict(self, X):
         """Predict using the fitted model
         
-        X : array, shape = [n_samples, n_timesteps, n_features]
+        X : array, shape = [n_samples * n_timesteps, n_features]
             Input timeseries data.
         
         Returns:
@@ -344,7 +346,7 @@ class ESNR(ESNbase):
         """
 
         Out = self.transform(X)
-        return self.clf.predict(Out)
+        return self.reg.predict(Out)
 
 
 class ESNC(ESNbase):
@@ -361,12 +363,12 @@ class ESNC(ESNbase):
 
     """
 
-    def __init__(self, N_nodes, N_in, g_in = 0.1, alpha = 0.3, initial_state = None, W_res = None, W_in= None, g_res = 1.0, input_bias = True,  washout_t = None,  with_time = False, with_input = True, clf=None, cl_param={}):
+    def __init__(self, N_nodes, N_in, g_in = 0.1, alpha = 0.3, initial_state = None, W_res = None, W_in= None, g_res = 1.0, input_bias = True,  washout_t = None,  with_time = False, with_input = True, clf=None):
         super().__init__(N_nodes, N_in, g_in, alpha, initial_state, W_res, W_in, g_res, input_bias, washout_t, with_time, with_input)
         if clf is None:
             self.clf = linear_model.svm.LinearSVC()
         else:
-            self.clf = clf(**cl_pram)
+            self.clf = clf
 
     def fit(self, X, y):
         """Fit classifier model

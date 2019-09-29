@@ -302,7 +302,7 @@ class ESNR(ESNbase):
 
     """
 
-    def __init__(self, N_nodes, N_in, g_in = 0.1, alpha = 0.3, initial_state = None, W_res = None, W_in= None, g_res = 1.0, input_bias = True,  washout_t = None, with_input = True, reg=None):
+    def __init__(self, N_nodes, N_in, g_in = 0.1, alpha = 0.3, initial_state = None, W_res = None, W_in= None, g_res = 1.0, input_bias = True,  washout_t = 0, with_input = True, reg=None):
         super().__init__(N_nodes, N_in, g_in, alpha, initial_state, W_res, W_in, g_res, input_bias, washout_t, with_time=True, with_input=with_input)
         
         if reg is None:
@@ -363,10 +363,10 @@ class ESNC(ESNbase):
 
     """
 
-    def __init__(self, N_nodes, N_in, g_in = 0.1, alpha = 0.3, initial_state = None, W_res = None, W_in= None, g_res = 1.0, input_bias = True,  washout_t = None,  with_time = False, with_input = True, clf=None):
+    def __init__(self, N_nodes, N_in, g_in = 0.1, alpha = 0.3, initial_state = None, W_res = None, W_in= None, g_res = 1.0, input_bias = True,  washout_t = 0,  with_time = False, with_input = True, clf=None):
         super().__init__(N_nodes, N_in, g_in, alpha, initial_state, W_res, W_in, g_res, input_bias, washout_t, with_time, with_input)
         if clf is None:
-            self.clf = linear_model.svm.LinearSVC()
+            self.clf = svm.LinearSVC()
         else:
             self.clf = clf
 
